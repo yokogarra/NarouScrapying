@@ -1,17 +1,20 @@
 import re
 import time
+import json
 import requests
 from bs4 import BeautifulSoup
 
 ## urlを入力して本文を取り出す
-def get_Honbun(novel_url, headers):
+def get_Honbun(novel_url):
 
     honbun_corpus = {}
-    
-    novel_url = 'https://ncode.syosetu.com/N4212GT'
+    headers = { 'Referer':'https://eus.rubiconproject.com/usync.html?&geo=au&co=jp',
+                    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36'
+                }
     novel_req = requests.get(novel_url,headers = headers)
     novel_soup = BeautifulSoup(novel_req.text, 'html.parser')
-
+    
+    novel_name = novel_soup.find("p", class_="novel_title").text
     html = novel_soup.select("dd.subtitle")
     update = novel_soup.select("dt.long_update")
 
@@ -28,11 +31,14 @@ def get_Honbun(novel_url, headers):
 
         honbun_corpus[title_list[i]] = text 
     
-    return honbun_corpus
+    return honbun_corpus, novel_name
 
 
 ## 小説の感想コメントを取り出す
-def get_Comments(novel_url,headers):
+def get_Comments(novel_url):
+    headers = { 'Referer':'https://eus.rubiconproject.com/usync.html?&geo=au&co=jp',
+                    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36'
+                }
     req = requests.get(novel_url,headers=headers)
     soup = BeautifulSoup(req.text,"html.parser")
 
@@ -96,3 +102,21 @@ def get_Comments(novel_url,headers):
         pass
 
     return contents
+
+def main():
+    novel_url = input("urlを入力してください：")
+    
+    honbun, name = get_Honbun(novel_url)
+    comments = get_Comments(novel_url)
+    
+    honbun_filename = "{}_honbun.json".format(name)
+    comment_filename = "{}_comment.json".format(name)
+
+
+    with open(honbun_filename, "w") as f:
+        json.dump(honbun, f)
+    with open(comment_filename, "w") as f:
+        json.dump(comments, f)
+
+if __name__ == '__main__':
+    main()
