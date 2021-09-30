@@ -6,4 +6,5 @@ pip install bs4
 
 ## 使用方法
 python scrapying.py
+
 input novel url
